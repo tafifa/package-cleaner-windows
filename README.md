@@ -27,18 +27,18 @@ PackClean is a Windows desktop app built with Electron + React to help developer
 
 ```text
 .
-+-- electron
-¦   +-- main.js
-¦   +-- preload.js
-¦   +-- scanner.js
-+-- src
-¦   +-- App.jsx
-¦   +-- main.jsx
-¦   +-- components
-¦   +-- styles
-+-- index.html
-+-- package.json
-+-- vite.config.js
+|-- electron
+|   |-- main.js
+|   |-- preload.js
+|   `-- scanner.js
+|-- src
+|   |-- App.jsx
+|   |-- main.jsx
+|   |-- components
+|   `-- styles
+|-- index.html
+|-- package.json
+`-- vite.config.js
 ```
 
 ## Requirements
@@ -93,12 +93,11 @@ npm run start          # Run electron from source
 
 See [TODO.md](TODO.md).
 
-## Contributing (Short)
+## Contributing
 
-1. Keep each commit small and focused.
-2. Do not break core flow: scan -> filter -> select -> delete/reinstall.
-3. Use conventional commit prefixes: `feat:`, `fix:`, `refactor:`, `docs:`.
-4. For UI/UX changes, include screenshots in pull requests.
+Keep contributions small and focused.
+Do not break the main flow (`scan -> filter -> select -> delete/reinstall`).
+Use commit prefixes: `feat:`, `fix:`, `refactor:`, `docs:`.
 
 ## Agent Rules
 
