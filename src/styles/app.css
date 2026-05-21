@@ -261,6 +261,20 @@ body {
   color: var(--muted);
 }
 
+.scan-progress-wrap {
+  display: grid;
+  gap: 2px;
+}
+
+.scan-path {
+  font-size: 11px;
+  color: #7c8aa6;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .list-summary {
   display: flex;
   justify-content: space-between;
@@ -311,6 +325,11 @@ body {
   border-color: #93c5fd;
 }
 
+.project-card:focus {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
 .project-card.selected {
   border-color: #3b82f6;
   background: #eff6ff;
@@ -324,7 +343,7 @@ body {
 
 .project-header h3 {
   margin: 0;
-  font-size: 24px;
+  font-size: 22px;
   letter-spacing: -0.02em;
 }
 
@@ -347,8 +366,20 @@ body {
 .project-meta {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: 13px;
   margin-bottom: 8px;
+}
+
+.size-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.size-relative {
+  color: #7c8aa6;
+  font-size: 11px;
 }
 
 .status-line {

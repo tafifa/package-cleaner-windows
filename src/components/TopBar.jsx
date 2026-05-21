@@ -1,4 +1,6 @@
 function TopBar({ isScanning, scanProgress, onScan, search, onSearchChange }) {
+  const currentPath = scanProgress?.currentPath || "";
+  const shortPath = currentPath.length > 58 ? `...${currentPath.slice(-58)}` : currentPath;
   const progressText =
     isScanning && scanProgress
       ? `Scanning ${scanProgress.percent}% (${scanProgress.processed}/${scanProgress.total})`
@@ -18,7 +20,12 @@ function TopBar({ isScanning, scanProgress, onScan, search, onSearchChange }) {
       <button type="button" className="btn-primary" onClick={onScan} disabled={isScanning}>
         {isScanning ? "Scanning..." : "Scan Ulang"}
       </button>
-      {progressText ? <span className="scan-progress">{progressText}</span> : null}
+      {progressText ? (
+        <div className="scan-progress-wrap">
+          <span className="scan-progress">{progressText}</span>
+          {shortPath ? <span className="scan-path">{shortPath}</span> : null}
+        </div>
+      ) : null}
     </header>
   );
 }

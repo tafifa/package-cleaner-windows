@@ -16,6 +16,8 @@ function ProjectCard({ project, maxSizeBytes, largeSizeThresholdMb, selected, on
   const style = TYPE_STYLE[project.type] || TYPE_STYLE.js;
   const sizeMb = (project.packageSizeBytes || 0) / 1024 ** 2;
   const percentage = maxSizeBytes > 0 ? Math.round(((project.packageSizeBytes || 0) / maxSizeBytes) * 100) : 0;
+  const sizeLabel = formatBytes(project.packageSizeBytes || 0);
+  const relativeLabel = percentage > 0 ? `${percentage}% max` : "-";
 
   let statusText = "KECIL";
   let statusColor = "#22c55e";
@@ -44,7 +46,19 @@ function ProjectCard({ project, maxSizeBytes, largeSizeThresholdMb, selected, on
   }
 
   return (
-    <article className={`project-card ${selected ? "selected" : ""}`} onClick={() => onToggleSelect(project.id)}>
+    <article
+      className={`project-card ${selected ? "selected" : ""}`}
+      onClick={() => onToggleSelect(project.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onToggleSelect(project.id);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+    >
       <div className="project-header">
         <h3>{project.name}</h3>
         <span className="type-badge" style={{ backgroundColor: style.bg, color: style.color }}>
@@ -59,7 +73,10 @@ function ProjectCard({ project, maxSizeBytes, largeSizeThresholdMb, selected, on
           <span className="status-dot" style={{ backgroundColor: statusColor }} />
           <span style={{ color: statusColor }}>{statusText}</span>
         </span>
-        <span>{formatBytes(project.packageSizeBytes || 0)}</span>
+        <span className="size-line">
+          <span>{sizeLabel}</span>
+          <span className="size-relative">{relativeLabel}</span>
+        </span>
       </div>
       <div className="progress-outer">
         <div className="progress-inner" style={{ width: `${percentage}%`, backgroundColor: barColor }} />
