@@ -122,6 +122,14 @@ function getProjectStatus(project, largeSizeThresholdMb) {
   return "small";
 }
 
+function formatBytes(bytes) {
+  if (!bytes) return "0 MB";
+  const gb = bytes / 1024 ** 3;
+  if (gb >= 1) return `${gb.toFixed(2)} GB`;
+  const mb = bytes / 1024 ** 2;
+  return `${mb.toFixed(2)} MB`;
+}
+
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -208,6 +216,8 @@ function App() {
   const inactiveSizeBytes = state.projects
     .filter((project) => project.inactive)
     .reduce((sum, project) => sum + (project.packageSizeBytes || 0), 0);
+  const selectedProjects = state.projects.filter((project) => state.selectedIds.includes(project.id));
+  const selectedSizeBytes = selectedProjects.reduce((sum, project) => sum + (project.packageSizeBytes || 0), 0);
 
   const handleScan = async () => {
     await runScan(state.rootFolders);
@@ -240,7 +250,12 @@ function App() {
     await window.electronAPI.saveSettings(nextSettings);
   };
 
-  const selectedProjects = state.projects.filter((project) => state.selectedIds.includes(project.id));
+  const handleResetFilters = () => {
+    dispatch({ type: "SET_FILTER", payload: "all" });
+    dispatch({ type: "SET_STATUS_FILTER", payload: "all" });
+    dispatch({ type: "SET_SIZE_FILTER", payload: "all" });
+    dispatch({ type: "SET_SEARCH", payload: "" });
+  };
 
   const handleDeleteSelected = async () => {
     if (selectedProjects.length === 0) return;
@@ -314,60 +329,91 @@ function App() {
           inactiveSizeBytes={inactiveSizeBytes}
           lastScanAt={state.lastScanAt}
         />
-        <div className="filters">
-          {["all", "js", "php", "flutter"].map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={`chip ${state.filter === type ? "active" : ""}`}
-              onClick={() => dispatch({ type: "SET_FILTER", payload: type })}
-            >
-              {type.toUpperCase()}
-            </button>
-          ))}
-        </div>
-        <div className="filters">
-          {[
-            { key: "all", label: "All Status" },
-            { key: "empty", label: "Kosong" },
-            { key: "small", label: "Kecil" },
-            { key: "medium", label: "Sedang" },
-            { key: "large", label: "Besar" },
-            { key: "inactive", label: "Inactive" }
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`chip ${state.statusFilter === item.key ? "active" : ""}`}
-              onClick={() => dispatch({ type: "SET_STATUS_FILTER", payload: item.key })}
-            >
-              {item.label}
-            </button>
-          ))}
-          {[
-            { key: "all", label: "All Size" },
-            { key: "lt100", label: "<100MB" },
-            { key: "100toThreshold", label: `100-${mediumUpperMb}MB` },
-            { key: "gtThreshold", label: `>${mediumUpperMb}MB` }
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`chip ${state.sizeFilter === item.key ? "active" : ""}`}
-              onClick={() => dispatch({ type: "SET_SIZE_FILTER", payload: item.key })}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <section className="filter-toolbar">
+          <div className="filter-group">
+            <p className="filter-title">Type</p>
+            <div className="filters">
+              {["all", "js", "php", "flutter"].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`chip ${state.filter === type ? "active" : ""}`}
+                  onClick={() => dispatch({ type: "SET_FILTER", payload: type })}
+                >
+                  {type.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-group">
+            <p className="filter-title">Status</p>
+            <div className="filters">
+              {[
+                { key: "all", label: "Semua" },
+                { key: "empty", label: "Kosong" },
+                { key: "small", label: "Kecil" },
+                { key: "medium", label: "Sedang" },
+                { key: "large", label: "Besar" },
+                { key: "inactive", label: "Inactive" }
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`chip ${state.statusFilter === item.key ? "active" : ""}`}
+                  onClick={() => dispatch({ type: "SET_STATUS_FILTER", payload: item.key })}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="filter-group">
+            <p className="filter-title">Size</p>
+            <div className="filters">
+              {[
+                { key: "all", label: "Semua" },
+                { key: "lt100", label: "<100MB" },
+                { key: "100toThreshold", label: `100-${mediumUpperMb}MB` },
+                { key: "gtThreshold", label: `>${mediumUpperMb}MB` }
+              ].map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={`chip ${state.sizeFilter === item.key ? "active" : ""}`}
+                  onClick={() => dispatch({ type: "SET_SIZE_FILTER", payload: item.key })}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button type="button" className="chip ghost" onClick={handleResetFilters}>
+            Reset Filter
+          </button>
+        </section>
+        <section className="list-summary">
+          <p>
+            Showing {filteredProjects.length} of {state.projects.length} projects
+          </p>
+          <p>
+            {state.selectedIds.length > 0
+              ? `${state.selectedIds.length} selected (${formatBytes(selectedSizeBytes)})`
+              : "Pilih project untuk aksi massal"}
+          </p>
+        </section>
         <ProjectList
           projects={filteredProjects}
+          allProjectsCount={state.projects.length}
+          isScanning={state.isScanning}
           selectedIds={state.selectedIds}
           largeSizeThresholdMb={thresholdMb}
+          onScan={handleScan}
+          onResetFilters={handleResetFilters}
           onToggleSelect={(id) => dispatch({ type: "TOGGLE_SELECTED", payload: id })}
         />
         <BottomBar
           selectedCount={state.selectedIds.length}
+          selectedSizeText={formatBytes(selectedSizeBytes)}
           isBusy={state.isScanning || state.isRunningAction}
           terminalOutput={state.terminalOutput}
           onClearOutput={() => dispatch({ type: "CLEAR_OUTPUT" })}
