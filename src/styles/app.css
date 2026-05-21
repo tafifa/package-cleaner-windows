@@ -114,6 +114,7 @@ body {
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  padding-bottom: 92px;
 }
 
 .topbar {
@@ -421,8 +422,10 @@ body {
   border-radius: var(--radius-md);
   background: #ffffff;
   padding: 10px 12px;
-  position: sticky;
-  bottom: 8px;
+  position: fixed;
+  right: 18px;
+  left: 270px;
+  bottom: 18px;
   z-index: 5;
   box-shadow: var(--shadow-soft);
 }
@@ -507,6 +510,9 @@ body {
   .bulk-bar {
     flex-direction: column;
     align-items: flex-start;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
   }
 
   .list-summary {

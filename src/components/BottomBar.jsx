@@ -6,6 +6,7 @@ function BottomBar({
   isBusy,
   terminalOutput,
   onClearOutput,
+  onClearSelected,
   onDeleteSelected,
   onReinstallSelected
 }) {
@@ -21,6 +22,9 @@ function BottomBar({
           <span>{selectedSizeText}</span>
         </div>
         <div className="bulk-actions">
+          <button type="button" className="btn-muted" disabled={!hasSelection || isBusy} onClick={onClearSelected}>
+            Clear Selected
+          </button>
           <button type="button" className="btn-muted danger" disabled={!hasSelection || isBusy} onClick={onDeleteSelected}>
             Delete Selected
           </button>

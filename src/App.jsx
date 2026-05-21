@@ -89,6 +89,11 @@ function reducer(state, action) {
           ? state.selectedIds.filter((id) => id !== action.payload)
           : [...state.selectedIds, action.payload]
       };
+    case "CLEAR_SELECTED":
+      return {
+        ...state,
+        selectedIds: []
+      };
     case "SET_ROOTS":
       return {
         ...state,
@@ -257,6 +262,10 @@ function App() {
     dispatch({ type: "SET_SEARCH", payload: "" });
   };
 
+  const handleClearSelected = () => {
+    dispatch({ type: "CLEAR_SELECTED" });
+  };
+
   const handleDeleteSelected = async () => {
     if (selectedProjects.length === 0) return;
 
@@ -417,6 +426,7 @@ function App() {
           isBusy={state.isScanning || state.isRunningAction}
           terminalOutput={state.terminalOutput}
           onClearOutput={() => dispatch({ type: "CLEAR_OUTPUT" })}
+          onClearSelected={handleClearSelected}
           onDeleteSelected={handleDeleteSelected}
           onReinstallSelected={handleReinstallSelected}
         />
