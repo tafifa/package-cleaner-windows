@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import StatsRow from "./components/StatsRow";
@@ -137,6 +137,12 @@ function formatBytes(bytes) {
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [deleteModal, setDeleteModal] = useState({
+    open: false,
+    packagePaths: [],
+    previewPaths: [],
+    totalSizeBytes: 0
+  });
 
   const runScan = useCallback(async (roots) => {
     dispatch({ type: "SET_SCANNING", payload: true });
@@ -180,6 +186,19 @@ function App() {
       runScan(state.rootFolders);
     }
   }, [runScan, state.settings.autoScanOnOpen, state.rootFolders]);
+
+  useEffect(() => {
+    if (!deleteModal.open) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setDeleteModal((prev) => ({ ...prev, open: false }));
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [deleteModal.open]);
 
   const thresholdMb = Number(state.settings.largeSizeThresholdMb) || 500;
   const smallLimitMb = 100;
@@ -275,11 +294,22 @@ function App() {
       return;
     }
 
-    if (!window.confirm(`Hapus ${packagePaths.length} folder ke Recycle Bin?`)) return;
+    const previewPaths = packagePaths.slice(0, 8);
+    setDeleteModal({
+      open: true,
+      packagePaths,
+      previewPaths,
+      totalSizeBytes: selectedSizeBytes
+    });
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.packagePaths.length) return;
+
+    setDeleteModal((prev) => ({ ...prev, open: false }));
     dispatch({ type: "SET_RUNNING_ACTION", payload: true });
     try {
-      const results = await window.electronAPI.deletePackages(packagePaths);
+      const results = await window.electronAPI.deletePackages(deleteModal.packagePaths);
       const failed = results.filter((item) => !item.ok).length;
       dispatch({
         type: "ADD_OUTPUT",
@@ -431,6 +461,47 @@ function App() {
           onReinstallSelected={handleReinstallSelected}
         />
       </main>
+      {deleteModal.open ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setDeleteModal((prev) => ({ ...prev, open: false }))}>
+          <section
+            className="confirm-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm delete packages"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>Konfirmasi Hapus Folder Packages</h3>
+            <p>
+              Anda akan memindahkan <strong>{deleteModal.packagePaths.length}</strong> folder ke Recycle Bin.
+            </p>
+            <p>
+              Total size terpilih: <strong>{formatBytes(deleteModal.totalSizeBytes)}</strong>
+            </p>
+            <div className="modal-paths">
+              {deleteModal.previewPaths.map((item) => (
+                <p key={item} title={item}>
+                  {item}
+                </p>
+              ))}
+              {deleteModal.packagePaths.length > deleteModal.previewPaths.length ? (
+                <p className="muted">+{deleteModal.packagePaths.length - deleteModal.previewPaths.length} path lainnya...</p>
+              ) : null}
+            </div>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-muted"
+                onClick={() => setDeleteModal((prev) => ({ ...prev, open: false }))}
+              >
+                Batal
+              </button>
+              <button type="button" className="btn-muted danger" onClick={handleConfirmDelete}>
+                Ya, Hapus
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </div>
   );
 }
